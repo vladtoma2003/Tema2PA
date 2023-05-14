@@ -2,15 +2,35 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
+#include <algorithm>
+#include <queue>
+#include <climits>
+#define INPATH "date.in"
+#define OUTPATH "date.out"
 
-#define PATH "date.in"
+typedef struct vecin {
+    int neighbour;
+    int cost;
+}vecin;
+
+typedef struct node {
+    int value;
+    int color;
+    int parent;
+    std::vector<vecin*> neighbours;
+}node;
 
 typedef struct graph {
-    std::vector<std::vector<int>> E;
+    std::vector<node*> V;
     int size;
     int source;
 }Graph;
 
+/*
+ * Functia asta functioneaza asemanator cu cea din task1.
+ * Singura diferenta este ca aici se citeste si costul.
+ * In plus, se salveaza si sursa.
+ */
 Graph* citire(std::ifstream& in) {
     auto g = new Graph;
     in >> g->size;
@@ -18,8 +38,19 @@ Graph* citire(std::ifstream& in) {
     in >> m;
     in >> g->source;
 
+    g->V.resize(g->size+1);
+
+    for(int i = 1; i <= g->size; ++i) {
+        g->V[i] = new node;
+        g->V[i]->value = i;
+        g->V[i]->color = 0;
+        g->V[i]->parent = -1;
+    }
+
+
     std::string line;
     std::getline(in, line);
+
     while(std::getline(in, line)) {
         std::istringstream ss(line);
         std::string word;
@@ -29,99 +60,99 @@ Graph* citire(std::ifstream& in) {
             v.push_back(std::stoi(word));
         }
 
-        g->E.push_back(v);
+        auto vec = new vecin;
+        vec->neighbour = v[1];
+        vec->cost = v[2];
+        g->V[v[0]]->neighbours.push_back(vec);
 
     }
 
     return g;
 }
 
+/*
+ * Functia asta afiseaza graful. Este folosita doar pentru debugging.
+ */
 void printGraph(Graph *g) {
-    for(int i = 0; i < g->size; ++i) {
-        for(int j = 0; j < 3; ++j) {
-            std::cout << g->E[i][j] << " ";
+    std::cout << "no. of nodes:" << g->size << std::endl;
+    for(int i = 1; i <= g->size; ++i) {
+        std::cout << i << ":";
+        for(auto u : g->V[i]->neighbours) {
+            std::cout << u->neighbour << "(" << u->cost << ") ";
         }
         std::cout << std::endl;
     }
 }
 
-int main() {
-    std::ifstream in(PATH);
+/*
+ * Folosind sortarea topologica, calculez distanta minima de la sursa la fiecare nod.
+ * Functia returneaza un vector de intregi, unde pe pozitia i se afla distanta de la sursa la nodul i.
+ * Daca nu exista drum de la sursa la nodul i, atunci distanta va fi INT_MAX(infinit).
+ * Daca exista drum, atunci distanta va fi cea minima.
+ */
+int *getDistance(Graph *g) {
+    auto distance = new int[g->size+1];
+    for(int i = 1; i <= g->size; ++i) {
+        distance[i] = INT_MAX; // initializez vectorul de distance cu inf
+    }
+
+    distance[g->source] = 0; // distanta de la sursa la sursa este 0
+
+    std::vector<int> in_degree(g->size+1, 0); // vectorul de grade de intrare
+    for(int i = 1; i <= g->size; ++i) {
+        for(auto u : g->V[i]->neighbours) {
+            in_degree[u->neighbour]++; // incrementez gradele de intrare
+        }
+    }
+
+    std::queue<int> q;
+    for(int i = 1; i <= g->size; ++i) {
+        if(in_degree[i] == 0) {
+            q.push(i); // adaug in coada nodurile cu gradul de intrare 0
+        }
+    }
+    std::vector<int> order;
+
+    while(!q.empty()) {
+        int u = q.front();
+        q.pop();
+        order.push_back(u);
+        for(auto v : g->V[u]->neighbours) {
+            in_degree[v->neighbour]--;
+            if(in_degree[v->neighbour] == 0) {
+                q.push(v->neighbour);
+            }
+        }
+    }
+
+    for(auto u : order) {
+        for(auto v : g->V[u]->neighbours) {
+            distance[v->neighbour] = std::min(distance[v->neighbour], distance[u] + v->cost);
+        }
+    }
+
+    return distance;
+}
+
+void task2() {
+    std::ifstream in(INPATH);
     if(!in.is_open()) {
         std::cout << "Could not open file!" << std::endl;
-        return 1;
+        return;
     }
 
     Graph *g = citire(in);
-    printGraph(g);
+//    printGraph(g);
 
-    return 0;
+    auto distance = getDistance(g);
+    std::ofstream out(OUTPATH);
+    if(!out.is_open()) {
+        std::cout << "Could not open file!" << std::endl;
+        return;
+    }
+
+    for(int i = 1; i <= g->size; ++i) {
+        out << distance[i] << " ";
+    }
+
 }
-
-//#include <iostream>
-//#include <fstream>
-//#include <vector>
-//#include <climits>
-//
-//using namespace std;
-//
-//const int INF = 1000000000;
-//const int MAXN = 5005;
-//
-//int n, m, s;
-//int a[MAXN][MAXN], dist[MAXN];
-//
-//void read_input() {
-//    ifstream fin("date.in");
-//    fin >> n >> m >> s;
-//
-//    // initializam matricea de adiacenta cu valoarea infinit
-//    for (int i = 1; i <= n; i++) {
-//        for (int j = 1; j <= n; j++) {
-//            a[i][j] = INF;
-//        }
-//    }
-//
-//    // citim perechile de arce si costurile corespunzatoare
-//    for (int i = 1; i <= m; i++) {
-//        int u, v, w;
-//        fin >> u >> v >> w;
-//        a[u][v] = w;
-//    }
-//
-//    fin.close();
-//}
-//
-//void floyd_warshall() {
-//    // initializam matricea de distante cu valorile initiale
-//    for (int i = 1; i <= n; i++) {
-//        dist[i] = a[s][i];
-//    }
-//    dist[s] = 0;
-//
-//    // aplicam algoritmul Floyd-Warshall
-//    for (int k = 1; k <= n; k++) {
-//        for (int i = 1; i <= n; i++) {
-//            for (int j = 1; j <= n; j++) {
-//                if (dist[i] != INF && dist[i] + a[i][j] < dist[j]) {
-//                    dist[j] = dist[i] + a[i][j];
-//                }
-//            }
-//        }
-//    }
-//}
-//
-//void write_output() {
-//    ofstream fout("date.out");
-//    for (int i = 1; i <= n; i++) {
-//        fout << dist[i] << " ";
-//    }
-//    fout.close();
-//}
-//
-//int main() {
-//    read_input();
-//    floyd_warshall();
-//    write_output();
-//    return 0;
-//}
