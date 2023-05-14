@@ -85,45 +85,45 @@ void printGraph(Graph *g) {
 }
 
 /*
- * Folosind sortarea topologica, calculez distanta minima de la sursa la fiecare nod.
- * Functia returneaza un vector de intregi, unde pe pozitia i se afla distanta de la sursa la nodul i.
- * Daca nu exista drum de la sursa la nodul i, atunci distanta va fi INT_MAX(infinit).
- * Daca exista drum, atunci distanta va fi cea minima.
+ * Functia asta exploreaza graful si adauga nodurile in ordinea
+ * in care sunt terminate de DFS.
  */
-int *getDistance(Graph *g) {
-    auto distance = new int[g->size+1];
-    for(int i = 1; i <= g->size; ++i) {
-        distance[i] = INT_MAX; // initializez vectorul de distance cu inf
-    }
-
-    distance[g->source] = 0; // distanta de la sursa la sursa este 0
-
-    std::vector<int> in_degree(g->size+1, 0); // vectorul de grade de intrare
-    for(int i = 1; i <= g->size; ++i) {
-        for(auto u : g->V[i]->neighbours) {
-            in_degree[u->neighbour]++; // incrementez gradele de intrare
+void explore(Graph *g, int u, std::vector<int> *order) {
+    g->V[u]->color = 1;
+    for(auto v : g->V[u]->neighbours) {
+        if(g->V[v->neighbour]->color == 0) {
+            explore(g, v->neighbour, order);
         }
     }
+    order->push_back(u);
+    g->V[u]->color = 2;
+}
 
-    std::queue<int> q;
-    for(int i = 1; i <= g->size; ++i) {
-        if(in_degree[i] == 0) {
-            q.push(i); // adaug in coada nodurile cu gradul de intrare 0
-        }
-    }
+/*
+ * Functia asta sorteaza topologic nodurile.
+ * Este folosita pentru a calcula distantele minime.
+ * Este functia de sortare topologica data la curs.
+ */
+std::vector<int> topSort(Graph *g) {
     std::vector<int> order;
-
-    while(!q.empty()) {
-        int u = q.front();
-        q.pop();
-        order.push_back(u);
-        for(auto v : g->V[u]->neighbours) {
-            in_degree[v->neighbour]--;
-            if(in_degree[v->neighbour] == 0) {
-                q.push(v->neighbour);
-            }
+    for(int i = 1; i <= g->size; ++i) {
+        if(g->V[i]->color == 0) {
+            explore(g, i, &order);
         }
     }
+    std::reverse(order.begin(), order.end());
+    return order;
+}
+
+/*
+ * Functia asta calculeaza distantele minime.
+ * Se foloseste de sortarea topologica.
+ */
+std::vector<int> getDistance(Graph *g) {
+    std::vector<int> order = topSort(g);
+    std::vector<int> distance(g->size+1, INT_MAX);
+
+    distance[g->source] = 0;
 
     for(auto u : order) {
         for(auto v : g->V[u]->neighbours) {
@@ -132,6 +132,7 @@ int *getDistance(Graph *g) {
     }
 
     return distance;
+
 }
 
 void task2() {
