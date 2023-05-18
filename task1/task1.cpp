@@ -27,7 +27,7 @@ typedef struct graph {
     int size;
 }Graph;
 
-/*
+/* 
  * In functia asta se citesc datele date din fisierul "date.in"
  * si se construieste graful astfel:
  * Graful este format din:
@@ -150,4 +150,7 @@ void task1() {
     } else {
         out << "nu are ciclu";
     }
+
+    in.close();
+    out.close();
 }
