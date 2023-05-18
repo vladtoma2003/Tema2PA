@@ -7,6 +7,7 @@
 #include <climits>
 #define INPATH "date.in"
 #define OUTPATH "date.out"
+#define INF 1000000000
 
 typedef struct vecin {
     int neighbour;
@@ -94,6 +95,10 @@ void explore(Graph *g, int u, std::vector<int> *order) {
         if(g->V[v->neighbour]->color == 0) {
             explore(g, v->neighbour, order);
         }
+        if(g->V[v->neighbour]->color == 1) {
+            std::cout << "Ciclu!" << std::endl;
+            exit(0);
+        }
     }
     order->push_back(u);
     g->V[u]->color = 2;
@@ -121,7 +126,7 @@ std::vector<int> topSort(Graph *g) {
  */
 std::vector<int> getDistance(Graph *g) {
     std::vector<int> order = topSort(g);
-    std::vector<int> distance(g->size+1, INT_MAX);
+    std::vector<int> distance(g->size+1, INF);
 
     distance[g->source] = 0;
 
@@ -137,7 +142,7 @@ std::vector<int> getDistance(Graph *g) {
 
 void task2() {
     std::ifstream in(INPATH);
-    if(!in.is_open()) {
+    if (!in.is_open()) {
         std::cout << "Could not open file!" << std::endl;
         return;
     }
@@ -147,13 +152,18 @@ void task2() {
 
     auto distance = getDistance(g);
     std::ofstream out(OUTPATH);
-    if(!out.is_open()) {
+    if (!out.is_open()) {
         std::cout << "Could not open file!" << std::endl;
         return;
     }
 
-    for(int i = 1; i <= g->size; ++i) {
-        out << distance[i] << " ";
+    for (int i = 1; i <= g->size; ++i) {
+        if(distance[i] == INF)
+            out << "-1 ";
+        else
+            out << distance[i] << " ";
     }
+    out.close();
+    in.close();
 
 }

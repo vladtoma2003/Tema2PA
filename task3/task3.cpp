@@ -5,8 +5,9 @@
 #include <algorithm>
 #include <queue>
 #include <climits>
-#define INPATH "date.in"
+#define INPATH "test"
 #define OUTPATH "date.out"
+#define INF 1000000000
 
 typedef struct vecin {
     int neighbour;
@@ -88,7 +89,7 @@ void printGraph3(Graph *g) {
 * 
 */
 std::vector<int> A_Star(Graph *g) {
-    std::vector<int> distances(g->size+1, INT_MAX);
+    std::vector<int> distances(g->size+1, INF);
     distances[g->source] = 0;
 
     // functie lambda care compara 2 valori
@@ -125,19 +126,34 @@ std::vector<int> A_Star(Graph *g) {
 }
 
 void task3() {
-    std::ifstream in(INPATH);
-    std::ofstream out(OUTPATH);
+    for(int j = 1; j <= 10; ++j) {
+        std::ifstream in(INPATH + std::to_string(j) + ".in");
+        if (!in.is_open()) {
+            std::cout << "Fisierul " << INPATH << " nu a putut fi deschis!\n";
+            return;
+        }
 
-    auto g = citire3(in);
+        std::ofstream out(OUTPATH + std::to_string(j));
+        if (!out.is_open()) {
+            std::cout << "Fisierul " << OUTPATH << " nu a putut fi deschis!\n";
+            return;
+        }
 
-    // printGraph3(g);
+        auto g = citire3(in);
 
-    auto distances = A_Star(g);
+        // printGraph3(g);
 
-    for(int i = 1; i <= g->size; ++i) {
-        out << distances[i] << " ";
+        auto distances = A_Star(g);
+
+        for (int i = 1; i <= g->size; ++i) {
+            if (distances[i] == INF) {
+                out << "-1 ";
+            } else {
+                out << distances[i] << " ";
+            }
+        }
+
+        in.close();
+        out.close();
     }
-
-    in.close();
-    out.close();
 }

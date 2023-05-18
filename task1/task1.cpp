@@ -131,7 +131,7 @@ int hasCycle(Graph *g) {
  */
 void task1() {
     std::ifstream in(INPATH);
-    if(!in.is_open()) {
+    if (!in.is_open()) {
         std::cout << "Could not open file!" << std::endl;
         return;
     }
@@ -140,12 +140,12 @@ void task1() {
 //    printGraph1(g);
 
     std::ofstream out(OUTPATH);
-    if(!out.is_open()) {
+    if (!out.is_open()) {
         std::cout << "Could not open file!" << std::endl;
         return;
     }
 
-    if(hasCycle(g)) {
+    if (hasCycle(g)) {
         out << "are ciclu";
     } else {
         out << "nu are ciclu";
