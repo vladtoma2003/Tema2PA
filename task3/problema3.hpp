@@ -1,0 +1,6 @@
+#ifndef TEMA2PA_PROBLEMA3_HPP
+#define TEMA2PA_PROBLEMA3_HPP
+
+void problema3();
+
+#endif //TEMA2PA_PROBLEMA3_HPP
