@@ -6,7 +6,6 @@
 
 
 int main(int argc, char* argv[]) {
-//    int n;
     switch (std::stoi(argv[1])) {
         case 1:
             problema1();
